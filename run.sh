@@ -146,7 +146,7 @@ run_best_ratio_benchmark() {
     echo "[INFO] Running best ratio benchmark with both modes..."
     echo "[INFO] Output directory: $output_dir"
 
-    find_best_ratio_with_modes "$output_dir" "$(realpath ./bin/xhpcg)" --nx=${HPCG_NX:-768} --ny=${HPCG_NY:-768} --nz=${HPCG_NZ:-768} --rt=${HPCG_RT:-45}
+    find_best_ratio_with_modes "$output_dir" "$(realpath ./bin/xhpcg)" --nx=${HPCG_NX:-256} --ny=${HPCG_NY:-256} --nz=${HPCG_NZ:-256} --rt=${HPCG_RT:-45}
 
     echo "[INFO] Extracting HPCG metrics and generating plot..."
     extract_ratio_hpcg_and_plot "$output_dir"
@@ -189,9 +189,9 @@ set_hpcg_problem_size_defaults() {
     mem_kb=$(awk '/MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null)
 
     if [ -z "$mem_kb" ]; then
-        HPCG_NX=${HPCG_NX:-768}
-        HPCG_NY=${HPCG_NY:-768}
-        HPCG_NZ=${HPCG_NZ:-768}
+        HPCG_NX=${HPCG_NX:-256}
+        HPCG_NY=${HPCG_NY:-256}
+        HPCG_NZ=${HPCG_NZ:-256}
         return
     fi
 

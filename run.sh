@@ -3,7 +3,6 @@ export OMP_NUM_THREADS=${OMP_NUM_THREADS:-120}
 export OMP_PROC_BIND=${OMP_PROC_BIND:-spread}
 export OMP_PLACES=${OMP_PLACES:-cores}
 
-# Extract HPCG GFLOP/s metrics from run logs and save to CSV
 extract_hpcg_metrics() {
     local csv_output="${OUT_RESULT_DIR}/hpcg_metrics.csv"
 
@@ -30,7 +29,6 @@ extract_hpcg_metrics() {
     echo "=================================="
 }
 
-# Extract HPCG GFLOP/s from ratio benchmark logs and generate plot (supports dual mode)
 extract_ratio_hpcg_and_plot() {
     local output_dir="$1"
     local metrics_csv="${output_dir}/hpcg_ratio_results.csv"
@@ -178,8 +176,6 @@ extract_combine_hpcg_metrics() {
     echo "=========================================="
 }
 
-# Estimate a near-1/3-memory working set for single-machine runs.
-# You can override with HPCG_NX/HPCG_NY/HPCG_NZ or HPCG_BYTES_PER_POINT.
 set_hpcg_problem_size_defaults() {
     if [ -n "${HPCG_NX}" ] && [ -n "${HPCG_NY}" ] && [ -n "${HPCG_NZ}" ]; then
         return
@@ -224,13 +220,9 @@ REBUILD=$1
 MODE=${2:-100000}
 
 if [ "$MODE" == "ratio" ]; then
-    source benchmark/script/run_common_best_ratio.sh
+    source benchmark/script/measurement/run_common_best_ratio.sh
 elif [ "$MODE" == "latency" ]; then
     source benchmark/script/run_measure_latency.sh
-elif [ "$MODE" == "combine" ]; then
-    source benchmark/script/run_combine.sh
-elif [ "$MODE" == "vis_miss" ]; then
-    source benchmark/script/run_measure_miss.sh
 else
     source benchmark/script/run_common.sh
 fi
@@ -264,12 +256,6 @@ if [ "$MODE" == "ratio" ]; then
     run_best_ratio_benchmark "$RATIO_OUTPUT_DIR"
 elif [ "$MODE" == "latency" ]; then
     run_and_measure_latency "$(realpath ./bin/xhpcg)" --nx=${HPCG_NX} --ny=${HPCG_NY} --nz=${HPCG_NZ} --rt=${HPCG_RT}
-elif [ "$MODE" == "vis_miss" ]; then
-    run_and_analyze_vis_miss "$(realpath ./bin/xhpcg)" --nx=${HPCG_NX} --ny=${HPCG_NY} --nz=${HPCG_NZ} --rt=${HPCG_RT}
-elif [ "$MODE" == "combine" ]; then
-    run_combine "$(realpath ./bin/xhpcg)" --nx=${HPCG_NX} --ny=${HPCG_NY} --nz=${HPCG_NZ} --rt=${HPCG_RT}
-
-    echo "[INFO] Extracting HPCG metrics from combine log files..."
     extract_combine_hpcg_metrics
 else
     run_and_analyze "$MODE" "$(realpath ./bin/xhpcg)" --nx=${HPCG_NX} --ny=${HPCG_NY} --nz=${HPCG_NZ} --rt=${HPCG_RT}

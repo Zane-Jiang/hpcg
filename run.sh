@@ -1,7 +1,31 @@
 #!/bin/bash
-export OMP_NUM_THREADS=${OMP_NUM_THREADS:-120}
+# Default to using all available logical processors to maximize bandwidth
+export OMP_NUM_THREADS=${OMP_NUM_THREADS:-$(nproc)}
 export OMP_PROC_BIND=${OMP_PROC_BIND:-spread}
 export OMP_PLACES=${OMP_PLACES:-cores}
+
+# Print usage
+print_usage() {
+        cat <<-USAGE
+Usage: $0 [rebuild] [mode]
+    rebuild: pass 1 to rebuild HPCG before running
+    mode:    ratio | latency | <numeric-run-id> (default: 100000)
+
+Environment variables to tune:
+    OMP_NUM_THREADS  - number of OpenMP threads (defaults to number of CPUs)
+    HPCG_NX/NY/NZ    - problem dimensions (auto-sized by default)
+    HPCG_RT          - run time per test in seconds (default: 60)
+
+Examples:
+    HPCG_ARCH=GCC_OMP bash benchmark/hpcg/run.sh 1 111
+    bash benchmark/hpcg/run.sh 0 latency
+USAGE
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        print_usage
+        exit 0
+fi
 
 extract_hpcg_metrics() {
     local csv_output="${OUT_RESULT_DIR}/hpcg_metrics.csv"
@@ -246,7 +270,8 @@ if [ ! -x ./bin/xhpcg ]; then
 fi
 
 set_hpcg_problem_size_defaults
-HPCG_RT=${HPCG_RT:-45}
+# Default run time per measurement: 60s (long enough for stable BW, not too long)
+HPCG_RT=${HPCG_RT:-60}
 print_hpcg_size_hint
 
 if [ "$MODE" == "ratio" ]; then
